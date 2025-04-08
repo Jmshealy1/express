@@ -4,7 +4,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.static("public"));
-app.use("/images", express.static("images")); // 🔥 serve images properly
+app.use("/images", express.static("images"));
 
 const gear = [
   {
@@ -15,7 +15,7 @@ const gear = [
     material: "Steel & Wood",
     img: "images/remington700.jpg",
     description: "Bolt-action hunting rifle with exceptional accuracy.",
-    rating: 4.8,
+    rating: 4.8
   },
   {
     _id: "shotgun1",
@@ -25,7 +25,7 @@ const gear = [
     material: "Steel & Synthetic",
     img: "images/benelli.jpg",
     description: "Semi-automatic shotgun ideal for waterfowl.",
-    rating: 4.9,
+    rating: 4.9
   },
   {
     _id: "bp1",
@@ -35,7 +35,7 @@ const gear = [
     material: "Wood & Iron",
     img: "images/cva.jpg",
     description: "Classic muzzleloader rifle, accurate and reliable.",
-    rating: 4.5,
+    rating: 4.5
   },
   {
     _id: "scope1",
@@ -45,7 +45,7 @@ const gear = [
     material: "Aluminum & Glass",
     img: "images/leupold.jpg",
     description: "High-quality rifle scope with crystal-clear optics.",
-    rating: 4.8,
+    rating: 4.8
   },
   {
     _id: "scope2",
@@ -55,7 +55,7 @@ const gear = [
     material: "Aluminum & Multi-coated Glass",
     img: "images/vortex.jpg",
     description: "Budget-friendly scope with excellent optics.",
-    rating: 4.7,
+    rating: 4.7
   },
   {
     _id: "boots1",
@@ -65,7 +65,7 @@ const gear = [
     material: "Leather & Gore-Tex",
     img: "images/irishsetter.jpg",
     description: "Waterproof boots suitable for rugged terrain.",
-    rating: 4.9,
+    rating: 4.9
   },
   {
     _id: "pack1",
@@ -75,7 +75,7 @@ const gear = [
     material: "Ripstop Nylon",
     img: "images/eberlestock.jpg",
     description: "Durable backpack for long hunting trips.",
-    rating: 4.8,
+    rating: 4.8
   },
   {
     _id: "pack2",
@@ -85,7 +85,7 @@ const gear = [
     material: "Cordura Nylon",
     img: "images/badlands.jpg",
     description: "Heavy-duty hunting backpack with ample storage.",
-    rating: 4.8,
+    rating: 4.8
   }
 ];
 
@@ -99,5 +99,5 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Gear API server running on port ${PORT}`);
+  console.log(`✅ Gear API server running at http://localhost:${PORT}`);
 });
