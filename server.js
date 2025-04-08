@@ -1,25 +1,39 @@
 const express = require("express");
 const cors = require("cors");
+const multer = require("multer");
 const path = require("path");
 
 const app = express();
 
-const BASE_URL = process.env.BASE_URL || "http://localhost:3001";
+app.use(express.static("public")); 
+app.use(express.json());           
+app.use(cors());                  
 
-app.use(cors());
-app.use(express.static("public"));
-app.use("/images", express.static(path.join(__dirname, "images")));
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./public/images/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
 
-const gear = [
+const upload = multer({ storage: storage });
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+let gear = [
   {
     _id: "rifle1",
     name: "Remington 700 Rifle",
     type: "rifle",
     pricePerDay: 55,
     material: "Steel & Wood",
-    img: `${BASE_URL}/images/remington700.jpg`,
+    main_image: "remington700.jpg",
     description: "Bolt-action hunting rifle with exceptional accuracy.",
-    rating: 4.8
+    rating: 4.8,
   },
   {
     _id: "shotgun1",
@@ -27,19 +41,9 @@ const gear = [
     type: "shotgun",
     pricePerDay: 45,
     material: "Steel & Synthetic",
-    img: `${BASE_URL}/images/benelli.jpg`,
+    main_image: "benelli.jpg",
     description: "Semi-automatic shotgun ideal for waterfowl.",
-    rating: 4.9
-  },
-  {
-    _id: "bp1",
-    name: "CVA Wolf Black Powder Rifle",
-    type: "black-powder",
-    pricePerDay: 40,
-    material: "Wood & Iron",
-    img: `${BASE_URL}/images/cva.jpg`,
-    description: "Classic muzzleloader rifle, accurate and reliable.",
-    rating: 4.5
+    rating: 4.9,
   },
   {
     _id: "scope1",
@@ -47,19 +51,9 @@ const gear = [
     type: "scope",
     pricePerDay: 20,
     material: "Aluminum & Glass",
-    img: `${BASE_URL}/images/leupold.jpg`,
+    main_image: "leupold.jpg",
     description: "High-quality rifle scope with crystal-clear optics.",
-    rating: 4.8
-  },
-  {
-    _id: "scope2",
-    name: "Vortex Diamondback",
-    type: "scope",
-    pricePerDay: 18,
-    material: "Aluminum & Multi-coated Glass",
-    img: `${BASE_URL}/images/vortex.jpg`,
-    description: "Budget-friendly scope with excellent optics.",
-    rating: 4.7
+    rating: 4.8,
   },
   {
     _id: "boots1",
@@ -67,9 +61,9 @@ const gear = [
     type: "boots",
     pricePerDay: 10,
     material: "Leather & Gore-Tex",
-    img: `${BASE_URL}/images/irishsetter.jpg`,
+    main_image: "irishsetter.jpg",
     description: "Waterproof boots suitable for rugged terrain.",
-    rating: 4.9
+    rating: 4.9,
   },
   {
     _id: "pack1",
@@ -77,9 +71,9 @@ const gear = [
     type: "backpack",
     pricePerDay: 8,
     material: "Ripstop Nylon",
-    img: `${BASE_URL}/images/eberlestock.jpg`,
+    main_image: "eberlestock.jpg",
     description: "Durable backpack for long hunting trips.",
-    rating: 4.8
+    rating: 4.8,
   },
   {
     _id: "pack2",
@@ -87,21 +81,26 @@ const gear = [
     type: "backpack",
     pricePerDay: 12,
     material: "Cordura Nylon",
-    img: `${BASE_URL}/images/badlands.jpg`,
+    main_image: "badlands.jpg",
     description: "Heavy-duty hunting backpack with ample storage.",
-    rating: 4.8
+    rating: 4.8,
   }
 ];
 
 app.get("/api/gear", (req, res) => {
-  res.json(gear);
+  res.send(gear);
 });
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/index.html"));
+app.post("/api/gear", upload.single("main_image"), (req, res) => {
+  const newItem = req.body;
+  newItem._id = `gear${Date.now()}`;
+  newItem.main_image = req.file ? req.file.originalname : "default.jpg";
+
+  gear.push(newItem);
+  res.status(201).send(newItem);
 });
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`✅ Server running at ${BASE_URL}`);
+  console.log(`✅ Gear API server listening at http://localhost:${PORT}`);
 });
