@@ -5,9 +5,9 @@ const path = require("path");
 
 const app = express();
 
-app.use(express.static("public")); 
+app.use(express.static("public"));
 app.use(express.json());           
-app.use(cors());                  
+app.use(cors());                 
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -17,7 +17,6 @@ const storage = multer.diskStorage({
     cb(null, file.originalname);
   },
 });
-
 const upload = multer({ storage: storage });
 
 app.get("/", (req, res) => {
@@ -86,7 +85,6 @@ let gear = [
     rating: 4.8,
   }
 ];
-
 app.get("/api/gear", (req, res) => {
   res.send(gear);
 });
@@ -95,12 +93,11 @@ app.post("/api/gear", upload.single("main_image"), (req, res) => {
   const newItem = req.body;
   newItem._id = `gear${Date.now()}`;
   newItem.main_image = req.file ? req.file.originalname : "default.jpg";
-
   gear.push(newItem);
   res.status(201).send(newItem);
 });
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`✅ Gear API server listening at http://localhost:${PORT}`);
+  console.log(`✅ Gear API server listening on port ${PORT}`);
 });
