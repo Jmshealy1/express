@@ -5,9 +5,10 @@ const path = require("path");
 
 const app = express();
 
-app.use(express.static("public"));
-app.use(express.json());           
-app.use(cors());                 
+// Middleware
+app.use(express.static("public")); 
+app.use(express.json());         
+app.use(cors());                  
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -15,7 +16,7 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     cb(null, file.originalname);
-  },
+  }
 });
 const upload = multer({ storage: storage });
 
@@ -32,7 +33,7 @@ let gear = [
     material: "Steel & Wood",
     main_image: "remington700.jpg",
     description: "Bolt-action hunting rifle with exceptional accuracy.",
-    rating: 4.8,
+    rating: 4.8
   },
   {
     _id: "shotgun1",
@@ -42,7 +43,7 @@ let gear = [
     material: "Steel & Synthetic",
     main_image: "benelli.jpg",
     description: "Semi-automatic shotgun ideal for waterfowl.",
-    rating: 4.9,
+    rating: 4.9
   },
   {
     _id: "scope1",
@@ -52,7 +53,7 @@ let gear = [
     material: "Aluminum & Glass",
     main_image: "leupold.jpg",
     description: "High-quality rifle scope with crystal-clear optics.",
-    rating: 4.8,
+    rating: 4.8
   },
   {
     _id: "boots1",
@@ -62,7 +63,7 @@ let gear = [
     material: "Leather & Gore-Tex",
     main_image: "irishsetter.jpg",
     description: "Waterproof boots suitable for rugged terrain.",
-    rating: 4.9,
+    rating: 4.9
   },
   {
     _id: "pack1",
@@ -72,7 +73,7 @@ let gear = [
     material: "Ripstop Nylon",
     main_image: "eberlestock.jpg",
     description: "Durable backpack for long hunting trips.",
-    rating: 4.8,
+    rating: 4.8
   },
   {
     _id: "pack2",
@@ -82,12 +83,14 @@ let gear = [
     material: "Cordura Nylon",
     main_image: "badlands.jpg",
     description: "Heavy-duty hunting backpack with ample storage.",
-    rating: 4.8,
+    rating: 4.8
   }
 ];
+
 app.get("/api/gear", (req, res) => {
   res.send(gear);
 });
+
 
 app.post("/api/gear", upload.single("main_image"), (req, res) => {
   const newItem = req.body;
@@ -99,5 +102,5 @@ app.post("/api/gear", upload.single("main_image"), (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`✅ Gear API server listening on port ${PORT}`);
+  console.log(`Gear API server running on port ${PORT}`);
 });
