@@ -2,9 +2,10 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const Joi = require("joi");
-const app = express();
 
+const app = express();
 app.use(express.static("public"));
+app.use("/uploads", express.static("uploads")); 
 app.use(express.json());
 app.use(cors());
 
@@ -16,95 +17,86 @@ const storage = multer.diskStorage({
     cb(null, file.originalname);
   },
 });
-
 const upload = multer({ storage: storage });
-
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
-});
 
 let gear = [
   {
     _id: 1,
     name: "Remington 700 Rifle",
-    type: "rifle",
-    pricePerDay: 55,
     material: "Steel & Wood",
-    main_image: "remington700.jpg",
+    pricePerDay: 55,
+    rating: 4.8,
     description: "Bolt-action hunting rifle with exceptional accuracy.",
-    rating: 4.8
+    main_image: "images/remington700.jpg"
   },
   {
     _id: 2,
     name: "Benelli Shotgun",
-    type: "shotgun",
-    pricePerDay: 45,
     material: "Steel & Synthetic",
-    main_image: "benelli.jpg",
+    pricePerDay: 45,
+    rating: 4.9,
     description: "Semi-automatic shotgun ideal for waterfowl.",
-    rating: 4.9
+    main_image: "images/benelli.jpg"
   },
   {
     _id: 3,
     name: "CVA Wolf Black Powder Rifle",
-    type: "black-powder",
-    pricePerDay: 40,
     material: "Wood & Iron",
-    main_image: "cva.jpg",
+    pricePerDay: 40,
+    rating: 4.5,
     description: "Classic muzzleloader rifle, accurate and reliable.",
-    rating: 4.5
+    main_image: "images/cva.jpg"
   },
   {
     _id: 4,
     name: "Leupold VX-Freedom",
-    type: "scope",
-    pricePerDay: 20,
     material: "Aluminum & Glass",
-    main_image: "leupold.jpg",
+    pricePerDay: 20,
+    rating: 4.8,
     description: "High-quality rifle scope with crystal-clear optics.",
-    rating: 4.8
+    main_image: "images/leupold.jpg"
   },
   {
     _id: 5,
     name: "Vortex Diamondback",
-    type: "scope",
-    pricePerDay: 18,
     material: "Aluminum & Multi-coated Glass",
-    main_image: "vortex.jpg",
+    pricePerDay: 18,
+    rating: 4.7,
     description: "Budget-friendly scope with excellent optics.",
-    rating: 4.7
+    main_image: "images/vortex.jpg"
   },
   {
     _id: 6,
     name: "Irish Setter Hunting Boots",
-    type: "boots",
-    pricePerDay: 10,
     material: "Leather & Gore-Tex",
-    main_image: "irishsetter.jpg",
+    pricePerDay: 10,
+    rating: 4.9,
     description: "Waterproof boots suitable for rugged terrain.",
-    rating: 4.9
+    main_image: "images/irishsetter.jpg"
   },
   {
     _id: 7,
     name: "Eberlestock Backpack",
-    type: "backpack",
-    pricePerDay: 8,
     material: "Ripstop Nylon",
-    main_image: "eberlestock.jpg",
+    pricePerDay: 8,
+    rating: 4.8,
     description: "Durable backpack for long hunting trips.",
-    rating: 4.8
+    main_image: "images/eberlestock.jpg"
   },
   {
     _id: 8,
     name: "Badlands 2200 Pack",
-    type: "backpack",
-    pricePerDay: 12,
     material: "Cordura Nylon",
-    main_image: "badlands.jpg",
+    pricePerDay: 12,
+    rating: 4.8,
     description: "Heavy-duty hunting backpack with ample storage.",
-    rating: 4.8
+    main_image: "images/badlands.jpg"
   }
 ];
+
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
+});
 
 app.get("/api/gear", (req, res) => {
   res.send(gear);
@@ -114,50 +106,49 @@ app.post("/api/gear", upload.single("main_image"), (req, res) => {
   const result = validateGear(req.body);
 
   if (result.error) {
-    res.status(400).send({ message: result.error.details[0].message });
-    return;
+    return res.status(400).send({ message: result.error.details[0].message });
   }
 
   const newGear = {
     _id: gear.length + 1,
     name: req.body.name,
-    type: req.body.type || "unknown",
-    pricePerDay: parseFloat(req.body.pricePerDay),
     material: req.body.material,
+    pricePerDay: parseFloat(req.body.pricePerDay),
     rating: parseFloat(req.body.rating),
     description: req.body.description || "",
-    main_image: req.file ? req.file.filename : "default.jpg"
+    main_image: req.file ? "images/" + req.file.filename : "images/default.jpg"
   };
 
   gear.push(newGear);
-  res.status(201).send(newGear);
+  res.status(200).send(newGear);
 });
 
-const validateGear = (gearItem) => {
+app.delete("/api/gear/:id", (req, res) => {
+  const gearItem = gear.find((g) => g._id === parseInt(req.params.id));
+
+  if (!gearItem) {
+    return res.status(404).send("Gear item not found");
+  }
+
+  const index = gear.indexOf(gearItem);
+  gear.splice(index, 1);
+  res.send(gearItem);
+});
+
+const validateGear = (item) => {
   const schema = Joi.object({
+    _id: Joi.allow(""),
     name: Joi.string().min(3).required(),
-    type: Joi.string().allow(""),
-    pricePerDay: Joi.number().min(0).required(),
     material: Joi.string().required(),
+    pricePerDay: Joi.number().min(0).required(),
     rating: Joi.number().min(0).max(5).required(),
-    description: Joi.string().allow(""),
-    main_image: Joi.allow("")
+    description: Joi.string().allow("").optional()
   });
 
-  return schema.validate(gearItem);
+  return schema.validate(item);
 };
-app.delete("/api/gear/:id", (req, res) => {
-    const id = req.params.id;
-    const index = gear.findIndex((item) => item._id == id);
-  
-    if (index === -1) {
-      return res.status(404).send({ message: "Gear not found" });
-    }
-  
-    gear.splice(index, 1);
-    res.send({ message: "Gear deleted" });
-  });
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`✅ Gear API listening on port ${PORT}`);
+  console.log(`Gear server running on port ${PORT}`);
 });
