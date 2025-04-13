@@ -146,7 +146,17 @@ const validateGear = (gearItem) => {
 
   return schema.validate(gearItem);
 };
-
+app.delete("/api/gear/:id", (req, res) => {
+    const id = req.params.id;
+    const index = gear.findIndex((item) => item._id == id);
+  
+    if (index === -1) {
+      return res.status(404).send({ message: "Gear not found" });
+    }
+  
+    gear.splice(index, 1);
+    res.send({ message: "Gear deleted" });
+  });
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`✅ Gear API listening on port ${PORT}`);
