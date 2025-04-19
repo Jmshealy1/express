@@ -21,7 +21,7 @@ const upload = multer({ storage: storage });
 
 //testdb is name of database, it will automatically make it
 mongoose
-  .connect("mongodb+srv://jonathanmshealy:jmshealy123456789@cluster0.c6yfrzv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+  .connect("mongodb+srv://jonathanmshealy:jms123456789@cluster0.c6yfrzv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
   .then(() => console.log("Connected to mongodb..."))
   .catch((err) => console.error("could not connect ot mongodb...", err));
 
