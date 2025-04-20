@@ -2,12 +2,10 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const Joi = require("joi");
-const mongoose = require("mongoose");
-
 const app = express();
+
 app.use(express.static("public"));
-app.use("/uploads", express.static("uploads"));
-app.use("/images", express.static("public/images")); // Serve image files
+app.use("/images", express.static("public/images"));
 app.use(express.json());
 app.use(cors());
 
@@ -19,21 +17,7 @@ const storage = multer.diskStorage({
     cb(null, file.originalname);
   },
 });
-const upload = multer({ storage: storage });
-
-mongoose
-  .connect("mongodb+srv://jonathanmshealy:jms123456789@cluster0.c6yfrzv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-  .then(() => console.log("Connected to mongodb..."))
-  .catch((err) => console.error("could not connect to mongodb...", err));
-
-const schema = new mongoose.Schema({ name: String });
-const Message = mongoose.model("Message", schema);
-const message = new Message({ name: "Hello World" });
-async function createMessage() {
-  const result = await message.save();
-  console.log(result);
-}
-createMessage();
+const upload = multer({ storage });
 
 let gear = [
   {
@@ -110,6 +94,17 @@ let gear = [
   }
 ];
 
+const validateGear = (item) => {
+  const schema = Joi.object({
+    name: Joi.string().min(3).required(),
+    material: Joi.string().required(),
+    pricePerDay: Joi.number().min(0).required(),
+    rating: Joi.number().min(0).max(5).required(),
+    description: Joi.string().allow("").optional()
+  });
+  return schema.validate(item);
+};
+
 
 app.get("/api/gear", (req, res) => {
   res.send(gear);
@@ -117,18 +112,20 @@ app.get("/api/gear", (req, res) => {
 
 
 app.post("/api/gear", upload.single("main_image"), (req, res) => {
-  const result = validateGear(req.body);
-  if (result.error) {
-    return res.status(400).send({ message: result.error.details[0].message });
-  }
-
-  const newGear = {
-    _id: gear.length + 1,
+  const form = {
     name: req.body.name,
     material: req.body.material,
     pricePerDay: parseFloat(req.body.pricePerDay),
     rating: parseFloat(req.body.rating),
-    description: req.body.description || "",
+    description: req.body.description
+  };
+
+  const result = validateGear(form);
+  if (result.error) return res.status(400).send({ message: result.error.details[0].message });
+
+  const newGear = {
+    _id: gear.length ? Math.max(...gear.map((g) => g._id)) + 1 : 1,
+    ...form,
     main_image: req.file ? req.file.filename : "default.jpg"
   };
 
@@ -137,63 +134,41 @@ app.post("/api/gear", upload.single("main_image"), (req, res) => {
 });
 
 
-app.delete("/api/gear/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const index = gear.findIndex((item) => item._id === id);
-  if (index === -1) {
-    return res.status(404).send("Gear item not found");
-  }
-
-  const deletedItem = gear.splice(index, 1)[0];
-  res.status(200).send(deletedItem);
-});
-
-
 app.put("/api/gear/:id", upload.single("main_image"), (req, res) => {
   const id = parseInt(req.params.id);
-  const gearItem = gear.find((item) => item._id === id);
-  if (!gearItem) {
-    return res.status(404).send({ message: "Gear item not found" });
-  }
+  const gearItem = gear.find((g) => g._id === id);
+  if (!gearItem) return res.status(404).send({ message: "Gear item not found" });
 
-  const schema = Joi.object({
-    name: Joi.string().min(3).required(),
-    material: Joi.string().required(),
-    pricePerDay: Joi.number().min(0).required(),
-    rating: Joi.number().min(0).max(5).required(),
-    description: Joi.string().allow("").optional()
-  });
+  const form = {
+    name: req.body.name,
+    material: req.body.material,
+    pricePerDay: parseFloat(req.body.pricePerDay),
+    rating: parseFloat(req.body.rating),
+    description: req.body.description
+  };
 
-  const result = schema.validate(req.body);
-  if (result.error) {
-    return res.status(400).send({ message: result.error.details[0].message });
-  }
+  const result = validateGear(form);
+  if (result.error) return res.status(400).send({ message: result.error.details[0].message });
 
-  gearItem.name = req.body.name;
-  gearItem.material = req.body.material;
-  gearItem.pricePerDay = parseFloat(req.body.pricePerDay);
-  gearItem.rating = parseFloat(req.body.rating);
-  gearItem.description = req.body.description;
-  if (req.file) {
-    gearItem.main_image = req.file.filename;
-  }
+  gearItem.name = form.name;
+  gearItem.material = form.material;
+  gearItem.pricePerDay = form.pricePerDay;
+  gearItem.rating = form.rating;
+  gearItem.description = form.description;
+  if (req.file) gearItem.main_image = req.file.filename;
 
   res.status(200).send(gearItem);
 });
 
 
-const validateGear = (item) => {
-  const schema = Joi.object({
-    _id: Joi.allow(""),
-    name: Joi.string().min(3).required(),
-    material: Joi.string().required(),
-    pricePerDay: Joi.number().min(0).required(),
-    rating: Joi.number().min(0).max(5).required(),
-    description: Joi.string().allow("").optional()
-  });
+app.delete("/api/gear/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const index = gear.findIndex((g) => g._id === id);
+  if (index === -1) return res.status(404).send("Gear item not found");
 
-  return schema.validate(item);
-};
+  const deleted = gear.splice(index, 1)[0];
+  res.status(200).send(deleted);
+});
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
