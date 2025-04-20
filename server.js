@@ -4,8 +4,10 @@ const multer = require("multer");
 const Joi = require("joi");
 const mongoose = require("mongoose");
 const app = express();
+
 app.use(express.static("public"));
-app.use("/uploads", express.static("uploads")); 
+app.use("/uploads", express.static("uploads"));
+app.use("/images", express.static("public/images"));
 app.use(express.json());
 app.use(cors());
 
@@ -19,27 +21,18 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-//testdb is name of database, it will automatically make it
 mongoose
   .connect("mongodb+srv://jonathanmshealy:jms123456789@cluster0.c6yfrzv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
   .then(() => console.log("Connected to mongodb..."))
-  .catch((err) => console.error("could not connect ot mongodb...", err));
+  .catch((err) => console.error("could not connect to mongodb...", err));
 
-const schema = new mongoose.Schema({
-  name: String,
-});
-
+const schema = new mongoose.Schema({ name: String });
+const Message = mongoose.model("Message", schema);
+const message = new Message({ name: "Hello World" });
 async function createMessage() {
   const result = await message.save();
   console.log(result);
 }
-
-//this creates a Message class in our app
-const Message = mongoose.model("Message", schema);
-const message = new Message({
-  name: "Hello World",
-});
-
 createMessage();
 
 let gear = [
@@ -50,7 +43,7 @@ let gear = [
     pricePerDay: 55,
     rating: 4.8,
     description: "Bolt-action hunting rifle with exceptional accuracy.",
-    main_image: "images/remington700.jpg"
+    main_image: "remington700.jpg"
   },
   {
     _id: 2,
@@ -59,7 +52,7 @@ let gear = [
     pricePerDay: 45,
     rating: 4.9,
     description: "Semi-automatic shotgun ideal for waterfowl.",
-    main_image: "images/benelli.jpg"
+    main_image: "benelli.jpg"
   },
   {
     _id: 3,
@@ -68,7 +61,7 @@ let gear = [
     pricePerDay: 40,
     rating: 4.5,
     description: "Classic muzzleloader rifle, accurate and reliable.",
-    main_image: "images/cva.jpg"
+    main_image: "cva.jpg"
   },
   {
     _id: 4,
@@ -77,7 +70,7 @@ let gear = [
     pricePerDay: 20,
     rating: 4.8,
     description: "High-quality rifle scope with crystal-clear optics.",
-    main_image: "images/leupold.jpg"
+    main_image: "leupold.jpg"
   },
   {
     _id: 5,
@@ -86,7 +79,7 @@ let gear = [
     pricePerDay: 18,
     rating: 4.7,
     description: "Budget-friendly scope with excellent optics.",
-    main_image: "images/vortex.jpg"
+    main_image: "vortex.jpg"
   },
   {
     _id: 6,
@@ -95,7 +88,7 @@ let gear = [
     pricePerDay: 10,
     rating: 4.9,
     description: "Waterproof boots suitable for rugged terrain.",
-    main_image: "images/irishsetter.jpg"
+    main_image: "irishsetter.jpg"
   },
   {
     _id: 7,
@@ -104,7 +97,7 @@ let gear = [
     pricePerDay: 8,
     rating: 4.8,
     description: "Durable backpack for long hunting trips.",
-    main_image: "images/eberlestock.jpg"
+    main_image: "eberlestock.jpg"
   },
   {
     _id: 8,
@@ -113,7 +106,7 @@ let gear = [
     pricePerDay: 12,
     rating: 4.8,
     description: "Heavy-duty hunting backpack with ample storage.",
-    main_image: "images/badlands.jpg"
+    main_image: "badlands.jpg"
   }
 ];
 
@@ -139,7 +132,7 @@ app.post("/api/gear", upload.single("main_image"), (req, res) => {
     pricePerDay: parseFloat(req.body.pricePerDay),
     rating: parseFloat(req.body.rating),
     description: req.body.description || "",
-    main_image: req.file ? "images/" + req.file.filename : "images/default.jpg"
+    main_image: req.file ? req.file.filename : "default.jpg"
   };
 
   gear.push(newGear);
